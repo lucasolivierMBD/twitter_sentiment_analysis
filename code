@@ -1,0 +1,61 @@
+# COLLECTING TWEETS
+import pandas as pd
+import numpy as np
+import string
+import tweepy
+import csv
+
+####input your credentials here
+consumer_key = 'SlXfC2wTHyoPyEoGuqEKnqmOv'
+consumer_secret = 'KbaOWt83aMki5CeMmsd0S956uWqPPFf0V0Qbt5rVGI5a3j2aAr'
+access_token = '253073799-wXcXQeLizNrZYzKZZTSp2riUkMFGILnzZ1ZmUCnP'
+access_token_secret = 'WQpbEyLdvKb53g3RfBJITvXcBcNHxcuDiAJn4KXcbPpHJ'
+
+auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+auth.set_access_token(access_token, access_token_secret)
+api = tweepy.API(auth,wait_on_rate_limit=True)
+
+# Create a file to append data
+csvFile = open('BITCOIN.csv', 'a')
+
+#Use csv Writer
+csvWriter = csv.writer(csvFile)
+
+for tweet in tweepy.Cursor(api.search,q="BITCOIN",
+                           lang="en",
+                           since="2019-12-01", ).items():
+    print (tweet.created_at, tweet.text)
+    csvWriter.writerow([tweet.created_at, tweet.text.encode('utf-8')])
+
+
+
+# CLEANING TWEETS
+  
+colnames=['date', 'tweet']
+
+import pandas
+
+BITCOIN = pandas.read_csv('C:/Users/lolivier/Desktop/Tweet/BITCOIN.csv', header = None, names = colnames)
+BITCOIN = BITCOIN.dropna()
+
+def remove_punct(text):
+    text  = "".join([char for char in text if char not in string.punctuation])
+    text = re.sub('[0-9]+', '', text)
+    return text
+
+BITCOIN['tweet'] = BITCOIN["tweet"].apply(lambda x: remove_punct(x))
+BITCOIN['tweet'] = BITCOIN['tweet'].str[1:] 
+  
+  
+  
+# ANALYZING TWEETS
+
+from textblob import TextBlob
+
+def sentiment_calc(text):
+    try:
+        return TextBlob(text).sentiment
+    except:
+        return None
+        
+BITCOIN['sentiment'] = BITCOIN['tweet'].apply(sentiment_calc)
